@@ -10,6 +10,8 @@
 #include <ros/package.h>
 #include <std_msgs/Int8.h>
 #include <std_msgs/Int32.h>
+#include <std_msgs/Float64.h>
+
 
 using namespace geometry_msgs;
 using namespace std;
@@ -27,6 +29,9 @@ ros::Subscriber local_pos_subscriber;
 ros::Publisher trajectory_publisher;
 ros::Publisher velocity_publisher;
 ros::Publisher trajectory_type_pub;
+ros::Publisher angular_pub;
+ros::Publisher speed_pub;
+ros::Publisher scale_pub;
 
 std_msgs::Int32 traj_type;
 
@@ -40,6 +45,9 @@ int trajectory_type;
 // Trajectory speed
 double speed;
 double straight_speed;
+std_msgs::Float64 ang_v;
+std_msgs::Float64 speed_no;
+std_msgs::Float64 scale_no;
 
 // Trajectory size
 double scale;

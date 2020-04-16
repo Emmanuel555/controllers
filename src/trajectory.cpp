@@ -69,14 +69,18 @@ Trajectory::Trajectory(int argc, char** argv){
     ros::NodeHandle node_handle;
     
     // Subscribers
-    attitude_subscriber = node_handle.subscribe<geometry_msgs::PoseStamped>("/attitude_RPY/local", 1, attitudeCallback);
-    command_subscriber = node_handle.subscribe("/y6/command", 1, commandCallback);
+    attitude_subscriber = node_handle.subscribe<geometry_msgs::PoseStamped>("mavros/local_position/pose", 1, attitudeCallback); //can use pose so long as the msg has yaw orientation 
+    //command_subscriber = node_handle.subscribe("/y6/command", 1, commandCallback); //
     local_pos_subscriber = node_handle.subscribe<geometry_msgs::PoseStamped>("mavros/local_position/pose", 10, localPosCallback);
+
 
     // Publishers
     trajectory_publisher = node_handle.advertise<geometry_msgs::PoseStamped>("/uav/trajectory", 1);
     velocity_publisher = node_handle.advertise<geometry_msgs::TwistStamped>("/uav/trajectory_velocity", 1);
     trajectory_type_pub = node_handle.advertise<std_msgs::Int32>("/trajectory_type", 1);
+    angular_pub = node_handle.advertise<std_msgs::Float64>("/uav/angular_vel", 1);
+    speed_pub = node_handle.advertise<std_msgs::Float64>("/uav/speed", 1);
+    scale_pub = node_handle.advertise<std_msgs::Float64>("/uav/scale", 1);
 
     // Initializing parameters
     pose_d << 0, 0, 0, 0;
@@ -242,11 +246,11 @@ void Trajectory::run(){
         // Main switch case
         switch(trajectory_type){
         case 0: // no command
-            trajectory << 0, 0, -100, yaw_d;
+            trajectory << 0, 0, 2, yaw_d;
             velocity << 0, 0, 0, 0;
             break;
         case 1: // hover
-            trajectory << 0, 0, 1, yaw_d;
+            trajectory << 0, 0, 2, yaw_d;
             velocity << 0, 0, 0, 0;
             break;
         case 2: // user
@@ -290,7 +294,7 @@ void Trajectory::run(){
                 velocity << 0, 0, 0, 0;
             break;
         case 5: // Circle
-            trajectory << scale * sin(t/scale) + pose_d(0), scale * cos(t/scale) + pose_d(1), pose_d(2), pose_d(3);
+            trajectory << 1*scale * sin(t/scale) + pose_d(0), scale * cos(t/scale) + pose_d(1), pose_d(2), pose_d(3); //negative one in front to make it anti-clockwise, need to add this into config next wk
             velocity << speed * cos(t/scale), -speed * sin(t/scale), 0, 0;
             break;
         case 6: // smooth 8
@@ -452,10 +456,10 @@ void Trajectory::run(){
         // Publish the reference trajectory
         geometry_msgs::PoseStamped trajectory_msg;
         trajectory_msg.header.stamp = ros::Time::now();
-        trajectory_msg.pose.position.x = trajectory(0);
-        trajectory_msg.pose.position.y = trajectory(1);
-        trajectory_msg.pose.position.z = trajectory(2);
-        trajectory_msg.pose.orientation.z = trajectory(3);
+        trajectory_msg.pose.position.x = trajectory(0); // x pose 
+        trajectory_msg.pose.position.y = trajectory(1); // y pose
+        trajectory_msg.pose.position.z = trajectory(2); // z pose
+        trajectory_msg.pose.orientation.z = trajectory(3); // yaw orientation
         trajectory_publisher.publish(trajectory_msg);
 
         // Publish the corresponding reference trajectory velocity
@@ -464,14 +468,22 @@ void Trajectory::run(){
         velocity_msg.twist.linear.x = velocity(0);
         velocity_msg.twist.linear.y = velocity(1);
         velocity_msg.twist.linear.z = velocity(2);
-        velocity_msg.twist.angular.z = velocity(3);
+        velocity_msg.twist.angular.z = velocity(3); // yaw_rotation vel
         velocity_publisher.publish(velocity_msg);
 
         //cout << "[Trajectory]: trajectory = " << trajectory.transpose() << endl;
 
         // Publish the trajectory type
+        
         traj_type.data = trajectory_type;
+        ang_v.data = speed/scale; //scale is radius!
+        speed_no.data = speed;
+        scale_no.data = scale;
+        speed_pub.publish(speed_no);
+        angular_pub.publish(ang_v);
+        scale_pub.publish(scale_no);
         trajectory_type_pub.publish(traj_type);
+
     }
 }
 
