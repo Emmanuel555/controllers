@@ -246,11 +246,11 @@ void Trajectory::run(){
         // Main switch case
         switch(trajectory_type){
         case 0: // no command
-            trajectory << 0, 0, 2, yaw_d;
+            trajectory << 0, 0, 0, yaw_d;
             velocity << 0, 0, 0, 0;
             break;
         case 1: // hover
-            trajectory << 0, 0, 2, yaw_d;
+            trajectory << 0, 0, 1.8, yaw_d;
             velocity << 0, 0, 0, 0;
             break;
         case 2: // user
