@@ -250,7 +250,7 @@ void Trajectory::run(){
             velocity << 0, 0, 0, 0;
             break;
         case 1: // hover
-            trajectory << 0, 0, 1.8, yaw_d;
+            trajectory << 0, 0, 1.0, yaw_d;
             velocity << 0, 0, 0, 0;
             break;
         case 2: // user

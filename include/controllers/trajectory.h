@@ -3,6 +3,7 @@
 #include <fstream>
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <nav_msgs/Odometry.h>
 #include <rosgraph_msgs/Clock.h>
 #include <dynamic_reconfigure/server.h>
 #include <controllers/setTrajectoryConfig.h>
